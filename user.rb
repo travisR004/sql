@@ -1,7 +1,8 @@
 require './QuestionsDatabase.rb'
 
 class User
-  attr_reader :id, :fname, :lname
+  attr_accessor :fname, :lname
+  attr_reader :id
 
   def self.all
     users = QuestionsDatabase.instance.execute("SELECT * FROM users")
@@ -29,6 +30,12 @@ class User
     User.new(result[0])
   end
 
+  # def self.find_by(hash)
+ #
+ #  end
+ #
+ #  User.find_by(:name => "Buck", :age => 19)
+
   def initialize(option = {})
     @id = option["id"]
     @fname = option["fname"]
@@ -43,4 +50,44 @@ class User
     Reply.find_by_user_id(self.id)
   end
 
+  def followed_questions
+    Question_follower.followed_questions_for_user_id(self.id)
+  end
+
+  def liked_questions
+    QuestionLike.liked_questions_for_user_id(self.id)
+  end
+
+  def average_karma
+    result = QuestionsDatabase.instance.execute(<<-SQL, self.id)
+    SELECT (COUNT(question_likes.question_id) / COUNT(DISTINCT questions.id)) avg_karma
+    FROM questions
+    JOIN question_likes ON question_likes.question_id = questions.id
+    WHERE questions.author_id = ?
+    SQL
+
+    result.first["avg_karma"]
+  end
+
+  def save
+    @id = QuestionsDatabase.instance.save_db({"object" => self,
+      "fname" => self.fname,
+      "lname" => self.lname })
+  end
+
+
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+

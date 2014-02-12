@@ -1,8 +1,8 @@
 require './QuestionsDatabase.rb'
 
 class Reply
-  attr_reader :id, :question_id, :reply_user_id, :reply_id, :body
-
+  attr_accessor :question_id, :reply_user_id, :reply_id, :body
+  attr_reader :id
   def self.all
     replies = QuestionsDatabase.instance.execute("SELECT * FROM replies")
     replies.map { |reply| Reply.new(reply) }
@@ -32,7 +32,7 @@ class Reply
   end
 
   def self.find_by_question(id)
-    results = QuestionsDatabse.instance.excute(<<-SQL, id)
+    results = QuestionsDatabse.instance.execute(<<-SQL, id)
     SELECT *
     FROM
     replies
@@ -41,6 +41,21 @@ class Reply
     SQL
 
     results.map { |result| Reply.new(result)}
+  end
+
+  def parent_reply
+    Reply.find_by_id(self.reply_id)
+  end
+
+  def child_replies
+    results = QuestionsDatabase.instance.execute(<<-SQL, self.id)
+    SELECT *
+    FROM
+    replies
+    WHERE
+    reply_id = ?
+    SQL
+    results.map {|result| Reply.new(result)}
   end
 
   def author
@@ -57,6 +72,14 @@ class Reply
     @reply_user_id = option["reply_user_id"]
     @reply_id= option["reply_id"]
     @body = option["body"]
+  end
+
+  def save
+   @id = QuestionsDatabase.instance.save_db({"object" => self,
+     "question_id" => self.question_id,
+     "body" => self.body,
+      "reply_id" => self.reply_id,
+      "reply_user_id" => self.reply_user_id})
   end
 
 end

@@ -4,6 +4,9 @@ require './question_like.rb'
 require './question_follower.rb'
 require './reply.rb'
 require './user.rb'
+require './question.rb'
+require './tag.rb'
+require 'active_support/inflector'
 
 class QuestionsDatabase < SQLite3::Database
   include Singleton
@@ -17,63 +20,38 @@ class QuestionsDatabase < SQLite3::Database
     self.type_translation = true
   end
 
+  def save_db(option = {})
+
+    object = option["object"].dup
+    class_type = object.class
+    id = object.id
+    option.shift
+
+    if id.nil?
+      QuestionsDatabase.instance.execute(<<-SQL)
+      INSERT INTO
+      #{class_type.to_s.downcase.pluralize} (#{option.keys.join(", ")})
+      VALUES
+     ('#{option.values.join("', '")}')
+      SQL
+      QuestionsDatabase.instance.last_insert_row_id
+    else
+      QuestionsDatabase.instance.execute(<<-SQL)
+      UPDATE
+      #{class_type.to_s.downcase.pluralize}
+      SET #{option.map{|key,value| "#{key} = '#{value}'"}.join(', ')}
+      WHERE #{class_type.to_s.downcase.pluralize}.id = #{id}
+      SQL
+      QuestionsDatabase.instance.last_insert_row_id
+    end
+  end
+
+
+
 end
 
 
-class Question
 
-  attr_reader :id, :title, :body, :author_id
-
-  def self.all
-    questions = QuestionsDatabase.instance.execute("SELECT * FROM questions")
-    questions.map { |question| Question.new(question) }
-  end
-
-  def self.find_by_id(id)
-    question = QuestionsDatabase.instance.execute(<<-SQL, id)
-   SELECT *
-   FROM questions
-   WHERE questions.id = ?
-    SQL
-    Question.new(question[0])
-  end
-
-  def self.find_by_author_id(id)
-    results = QuestionsDatabase.instance.execute(<<-SQL, id)
-    SELECT *
-    FROM
-    questions
-    WHERE
-    author_id = ?
-    SQL
-
-    results.map {|question| Question.new(question) }
-  end
-
-  def author
-    result = QuestionDatabase.instance.execute(<<-SQL, self.author_id)
-    SELECT *
-    FROM
-    users
-    WHERE
-    users.id = ?
-    SQL
-
-    result.map{ |result| User.new(result)}
-  end
-
-  def replies
-    Reply.find_by_question(self.id)
-  end
-
-  def initialize(option = {} )
-    @id = option["id"]
-    @title = option["title"]
-    @body = option["body"]
-    @author_id = option["author_id"]
-  end
-
-end
 
 
 
