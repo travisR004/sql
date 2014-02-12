@@ -1,6 +1,6 @@
 require './QuestionsDatabase.rb'
 
-class Question
+class Question < Sql
 
   attr_accessor :title, :body, :author_id
   attr_reader :id
@@ -74,9 +74,7 @@ class Question
   end
 
   def save
-    @id = QuestionsDatabase.instance.save_db({"object" => self,
-      "title" => self.title,
-      "body" => self.body,
+    @id = super({"object" => self, "title" => self.title, "body" => self.body,
       "author_id" => self.author_id })
   end
 end

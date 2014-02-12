@@ -1,6 +1,8 @@
 require './QuestionsDatabase.rb'
+require './SQL.rb'
 
-class Reply
+class Reply < Sql
+
   attr_accessor :question_id, :reply_user_id, :reply_id, :body
   attr_reader :id
   def self.all
@@ -75,11 +77,8 @@ class Reply
   end
 
   def save
-   @id = QuestionsDatabase.instance.save_db({"object" => self,
-     "question_id" => self.question_id,
-     "body" => self.body,
-      "reply_id" => self.reply_id,
-      "reply_user_id" => self.reply_user_id})
+   @id = super({"object" => self, "question_id" => self.question_id,
+     "body" => self.body, "reply_id" => self.reply_id, "reply_user_id" => self.reply_user_id})
   end
 
 end

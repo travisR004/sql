@@ -7,6 +7,7 @@ require './user.rb'
 require './question.rb'
 require './tag.rb'
 require 'active_support/inflector'
+require './SQL.rb'
 
 class QuestionsDatabase < SQLite3::Database
   include Singleton

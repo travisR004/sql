@@ -1,7 +1,11 @@
 require './QuestionsDatabase'
+require './SQL.rb'
 
-class Tag
+class Tag < Sql
   attr_reader :id
+  attr_accessor :name
+
+
   def self.all
     users = QuestionsDatabase.instance.execute("SELECT * FROM tags")
     users.map { |user| Tag.new(user) }
@@ -29,7 +33,6 @@ class Tag
 
   end
 
-
   def initialize(option = {})
     @id = option["id"]
     @name = option["name"]
@@ -53,6 +56,10 @@ class Tag
       SQL
 
     result.map{ |result| Question.new(result)}
+  end
+
+  def save
+    @id = super({"object" => self, "name" => self.name})
   end
 
 end

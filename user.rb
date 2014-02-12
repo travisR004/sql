@@ -1,6 +1,8 @@
 require './QuestionsDatabase.rb'
+require './SQL.rb'
 
-class User
+
+class User < Sql
   attr_accessor :fname, :lname
   attr_reader :id
 
@@ -70,9 +72,7 @@ class User
   end
 
   def save
-    @id = QuestionsDatabase.instance.save_db({"object" => self,
-      "fname" => self.fname,
-      "lname" => self.lname })
+    @id = super({"object" => self, "fname" => self.fname, "lname" => self.lname })
   end
 
 
